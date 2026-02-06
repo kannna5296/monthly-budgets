@@ -2,23 +2,23 @@
 <!--
 Sync Impact Report
 
-Version change: 0.1.0 -> 1.0.0
+Version change: 1.0.0 -> 1.1.0
 Modified principles:
-	- "III. テストファースト" -> "III. テストコードの実装は不要"
-	- "I. ライブラリ優先" / "II. CLI" 等は置換し、プロジェクト方針に合わせて再定義
+  - "IV. 使用技術スタック & スタイル" -> "IV. 技術選定とコーディングスタイル" (Python必須の記述を撤回)
+  - 表現の緩和: 技術スタックを要件に合った選定に変更
 Added sections:
-	- 技術スタック: Python, PEP8
+  - 技術選定ポリシー: 要件に沿った選定を必須化
 Removed sections:
-	- 明示的なテスト要求（削除）
+  - 明示的に Python を必須とする一文
 Templates requiring updates:
-	- .specify/templates/tasks-template.md: ⚠ pending (サンプルテストタスクが多数記載されているため修正推奨)
-	- .specify/templates/spec-template.md: ⚠ pending (仕様テンプレートのテスト関連文言を確認/修正してください)
-	- .specify/templates/plan-template.md: ⚠ pending (Constitution Check がテスト前提なら調整が必要)
-	- .specify/templates/checklist-template.md: ✅ aligned
-	- .specify/templates/agent-file-template.md: ✅ aligned
+  - .specify/templates/tasks-template.md: ⚠ pending (テスト関連サンプルの注記/削除を推奨)
+  - .specify/templates/spec-template.md: ⚠ pending (テックスタック欄やテスト文言の確認を推奨)
+  - .specify/templates/plan-template.md: ⚠ pending (Constitution Check の言及をアップデート推奨)
+  - .specify/templates/checklist-template.md: ✅ aligned
+  - .specify/templates/agent-file-template.md: ✅ aligned
 Follow-up TODOs:
-	- TODO(RATIFICATION_DATE): Ratification date not found in repo; please provide the original adoption date.
-	- TODO(OLD_VERSION): If this is an amendment, provide prior version tag/number for accurate delta.
+  - TODO(RATIFICATION_DATE): Ratification date not found in repo; please provide the original adoption date.
+  - TODO(OLD_VERSION): If this is an amendment, provide prior version tag/number for accurate delta.
 -->
 
 # kongetsu Constitution
@@ -47,11 +47,14 @@ Follow-up TODOs:
 
 これらのテストは外部CIやQAパイプライン側で実行/管理される運用方針のため、コードベース内にテストコードを追加しないことをMUST NOTとする。テストの代替として、明確な使用方法と例、入力/出力仕様をドキュメントで提供すること。
 
-### IV. 使用技術スタック & スタイル
-- 使用技術スタック: Python（プロジェクト全体でPythonを採用）
-- コーディングスタイル: PEP8 に従うこと（リンタ/フォーマッタの導入を推奨）
+### IV. 技術選定とコーディングスタイル
 
-上記は一貫性とコントリビューション容易性のためMUSTとする。
+- 技術選定: 各プロジェクトの要件（性能、運用コスト、チームスキル、エコシステム、保守性）に基づき、最適な技術スタックを選定することをMUSTとする。
+	- 選定時には理由（選定根拠）をドキュメント化し、スペックに明示すること（例: なぜ Python か、なぜ Go かなど）。
+
+- コーディングスタイル: 選定した言語の標準的なスタイルガイドに従うこと（例: Python なら PEP8）。プロジェクトには適切なリンタ／フォーマッタを導入し、CIでスタイルチェックを行うことを推奨する。
+
+上記は一貫性とコントリビューション容易性を確保するための必須方針である。
 
 ### V. 可観測性とバージョニング（簡潔）
 ログ・メッセージは読みやすく構造化することを推奨する。バージョニングはセマンティックバージョンを採用する（破壊的変更はMAJOR増分）。本憲法の大幅方針変更（例: テスト方針の削除）はMAJORバージョン上げを伴う。
@@ -100,5 +103,5 @@ Pull Request は以下を満たすことをレビュー前提条件とする:
 2. 変更が破壊的であれば影響範囲と移行手順を明示すること。  
 3. 破壊的変更はコアメンバーの過半数承認を必要とする。  
 
-**Version**: 1.0.0 | **Ratified**: TODO(RATIFICATION_DATE) | **Last Amended**: 2026-02-07
+**Version**: 1.1.0 | **Ratified**: TODO(RATIFICATION_DATE) | **Last Amended**: 2026-02-07
 

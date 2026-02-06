@@ -8,8 +8,9 @@ MVP はカテゴリ管理（固定/変動）、月次予算作成（収入・貯
 
 ## Technical Context
 
-Language/Version: Python 3.10+  
-Primary Dependencies: SQLite (組み込み) / Flask or minimal CLI  
+
+Language/Version: 選定は要件に基づく（推奨: Python 3.10+ / FastAPI for backend）  
+Primary Dependencies: 選定スタックに依存（例: SQLite, ORM, 小規模Webフレームワーク等）  
 Storage: SQLite または JSON ファイル（MVPはSQLite推奨）  
 Testing: 本プロジェクト方針ではリポジトリ内にテストコードを含めない（外部CIにて管理）  
 Target Platform: Desktop / Small-hosted Web  
@@ -19,7 +20,7 @@ Performance Goals: 単一ユーザ・ローカル利用を想定、レスポン�
 
 GATE: Must pass before Phase 0 research. Re-check after Phase 1 design.
 
-このプロジェクトは既存憲法に従い、以下を満たす必要がある: クリーンコード、シンプルなUX、使用技術はPython（PEP8）。
+このプロジェクトは既存憲法に従い、以下を満たす必要がある: クリーンコード、シンプルなUX、技術は要件に合わせて選定されること（選定理由をドキュメント化）。
 
 ## Project Structure (MVP)
 
@@ -39,9 +40,9 @@ specs/monthly-budget/
 
 ## Phase 1: Setup
 
-- T001 プロジェクト初期化、Python 仮想環境、依存インストール  
-- T002 SQLiteスキーマ作成（Category, MonthlyBudget, MonthlyBudgetItem, Adjustment）  
-- T003 PEP8フォーマッタ（black/flake8）の導入
+- T001 プロジェクト初期化、選定したスタックの環境準備と依存インストール（例: Pythonなら venv + pip、Nodeなら nvm + npm/yarn）  
+- T002 データストレージ設計とスキーマ（Category, MonthlyBudget, MonthlyBudgetItem, Adjustment）作成（SQLite推奨）  
+- T003 コーディングスタイル/フォーマッタの導入（選定言語に合わせて: 例 Python→black/flake8、JS→prettier/eslint）
 
 ## Phase 2: Core Implementation (MVP)
 
