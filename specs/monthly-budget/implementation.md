@@ -45,6 +45,8 @@ POST /api/budgets に送信される JSON の形（現在の実装）:
 {
   "income": 300000,
   "savingsGoal": 50000,
+  "year": 2026,
+  "month": 2,
   "categories": [
     {
       "type": "固定費",
