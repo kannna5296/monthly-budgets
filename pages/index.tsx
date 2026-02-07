@@ -407,7 +407,6 @@ const Home: React.FC = () => {
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <label>カテゴリ（表エディタ） — type,category,base,adj1,adj2,...</label>
           <div style={{ overflowX: 'auto', marginTop: 8 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
