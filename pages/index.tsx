@@ -342,7 +342,7 @@ const Home: React.FC = () => {
 
   return (
     <main style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
-      <h1>月次家計予算作成（デモ）</h1>
+      <h1>今月の予算</h1>
       <form onSubmit={onSubmit} style={{ maxWidth: 700 }}>
         <div style={{ marginBottom: 12 }}>
           <label>収入（円）</label>
