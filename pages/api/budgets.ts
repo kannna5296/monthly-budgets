@@ -3,37 +3,38 @@ import { z } from 'zod';
 import type { MonthlyBudgetPayload } from '../../types/budget';
 import { readBudgets, findByYearMonth, upsertBudget } from '../../lib/storage';
 
+// Zod schemas for server-side validation (module scope to avoid recreation per request)
+const numberFromString = z.preprocess((val) => {
+  if (typeof val === 'string') {
+    const v = val.trim();
+    if (v === '') return NaN;
+    const n = Number(v);
+    return Number.isNaN(n) ? val : n;
+  }
+  return val;
+}, z.number());
+
+const AdjustmentSchema = z.object({
+  label: z.string(),
+  amount: numberFromString
+});
+
+const CategorySchema = z.object({
+  type: z.union([z.literal('固定費'), z.literal('変動費')]),
+  name: z.string(),
+  base: numberFromString,
+  adjustments: z.array(AdjustmentSchema).optional().default([])
+});
+
+const PayloadSchema = z.object({
+  income: numberFromString,
+  savingsGoal: numberFromString,
+  year: numberFromString,
+  month: numberFromString,
+  categories: z.array(CategorySchema)
+}).strict();
+
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // Zod schemas for server-side validation
-  const numberFromString = z.preprocess((val) => {
-    if (typeof val === 'string') {
-      const v = val.trim();
-      if (v === '') return NaN;
-      const n = Number(v);
-      return Number.isNaN(n) ? val : n;
-    }
-    return val;
-  }, z.number());
-
-  const AdjustmentSchema = z.object({
-    label: z.string(),
-    amount: numberFromString
-  });
-
-  const CategorySchema = z.object({
-    type: z.union([z.literal('固定費'), z.literal('変動費')]),
-    name: z.string(),
-    base: numberFromString,
-    adjustments: z.array(AdjustmentSchema).optional().default([])
-  });
-
-  const PayloadSchema = z.object({
-    income: numberFromString,
-    savingsGoal: numberFromString,
-    year: numberFromString,
-    month: numberFromString,
-    categories: z.array(CategorySchema)
-  });
 
   if (req.method === 'POST') {
     // validate body
