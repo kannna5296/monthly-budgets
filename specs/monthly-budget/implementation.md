@@ -72,6 +72,8 @@ POST /api/budgets に送信される JSON の形（現在の実装）:
   "createdAt": "2026-02-07T12:34:56.000Z",
   "income": 300000,
   "savingsGoal": 50000,
+  "year": 2026,
+  "month": 2,
   "categories": [ ... ]
 }
 ```
