@@ -12,6 +12,7 @@ const Home: React.FC = () => {
   );
   const [adjLabels, setAdjLabels] = useState<string[]>([]);
   const [rows, setRows] = useState<string[][]>([]);
+  const [cellErrors, setCellErrors] = useState<string[][]>([]);
   const [status, setStatus] = useState<string>('');
 
   // parse matrix text into category objects (used for fallback or tests)
@@ -67,8 +68,29 @@ const Home: React.FC = () => {
     const parsed = parseMatrixToState(categoriesMatrix);
     setAdjLabels(parsed.labels);
     setRows(parsed.rows);
+    setCellErrors(parsed.rows.map((r) => r.map(() => '')));
   }, []);
   // helpers for editing the table
+  const validateCell = (colIndex: number, value: string) => {
+    // col 0: type, col1: name, col2: base (required), col>=3: adjustments (optional but numeric)
+    if (colIndex === 0) {
+      if (!(value === '固定費' || value === '変動費')) return '固定費か変動費を選択してください';
+      return '';
+    }
+    if (colIndex === 2) {
+      if (value === undefined || value === '') return 'ベースは必須です';
+      if (Number.isNaN(Number(value))) return '数値で入力してください';
+      return '';
+    }
+    if (colIndex >= 3) {
+      if (value === undefined || value === '') return '';
+      if (Number.isNaN(Number(value))) return '数値で入力してください';
+      return '';
+    }
+    // category name (col 1) - no immediate validation required
+    return '';
+  };
+
   const updateCell = (rowIndex: number, colIndex: number, value: string) => {
     setRows((prev) => {
       const copy = prev.map((r) => r.slice());
@@ -76,24 +98,41 @@ const Home: React.FC = () => {
       copy[rowIndex][colIndex] = value;
       return copy;
     });
+
+    const err = validateCell(colIndex, value);
+    setCellErrors((prev) => {
+      const copy = prev.map((r) => r.slice());
+      while (copy.length <= rowIndex) copy.push(Array(3 + adjLabels.length).fill(''));
+      if (!copy[rowIndex]) copy[rowIndex] = Array(3 + adjLabels.length).fill('');
+      // ensure row has correct length
+      if (copy[rowIndex].length < 3 + adjLabels.length) {
+        copy[rowIndex] = [...copy[rowIndex], ...Array(3 + adjLabels.length - copy[rowIndex].length).fill('')];
+      }
+      copy[rowIndex][colIndex] = err;
+      return copy;
+    });
   };
 
   const addRow = () => {
     setRows((prev) => [...prev, [/* type */ '固定費', /* name */ '', /* base */ '', ...Array(adjLabels.length).fill('')]]);
+    setCellErrors((prev) => [...prev, Array(3 + adjLabels.length).fill('')]);
   };
 
   const removeRow = (index: number) => {
     setRows((prev) => prev.filter((_, i) => i !== index));
+    setCellErrors((prev) => prev.filter((_, i) => i !== index));
   };
 
   const addAdjColumn = () => {
     setAdjLabels((prev) => [...prev, `adj${prev.length + 1}`]);
     setRows((prev) => prev.map((r) => [...r, '']));
+    setCellErrors((prev) => prev.map((r) => [...r, '']));
   };
 
   const removeAdjColumn = () => {
     setAdjLabels((prev) => prev.slice(0, -1));
     setRows((prev) => prev.map((r) => r.slice(0, -1)));
+    setCellErrors((prev) => prev.map((r) => r.slice(0, -1)));
   };
 
   const updateAdjLabel = (index: number, value: string) => {
@@ -225,28 +264,36 @@ const Home: React.FC = () => {
               <tbody>
                 {rows.map((row, ri) => (
                   <tr key={ri}>
-                    {row.map((cell, ci) => (
-                      <td key={ci} style={{ padding: 6, borderBottom: '1px solid #eee' }}>
-                        {ci === 0 ? (
-                          <select
-                            value={cell}
-                            onChange={(e) => updateCell(ri, ci, e.target.value)}
-                            style={{ width: '100%' }}
-                          >
-                            <option value="固定費">固定費</option>
-                            <option value="変動費">変動費</option>
-                          </select>
-                        ) : (
-                          <input
-                            type={ci === 2 || ci >= 3 ? 'number' : 'text'}
-                            inputMode={ci === 2 || ci >= 3 ? 'numeric' : undefined}
-                            value={cell}
-                            onChange={(e) => updateCell(ri, ci, e.target.value)}
-                            style={{ width: '100%' }}
-                          />
-                        )}
-                      </td>
-                    ))}
+                    {row.map((cell, ci) => {
+                      const err = (cellErrors[ri] && cellErrors[ri][ci]) || '';
+                      return (
+                        <td key={ci} style={{ padding: 6, borderBottom: '1px solid #eee', verticalAlign: 'top' }}>
+                          <div>
+                            {ci === 0 ? (
+                              <select
+                                value={cell}
+                                onChange={(e) => updateCell(ri, ci, e.target.value)}
+                                style={{ width: '100%', border: err ? '1px solid red' : undefined }}
+                              >
+                                <option value="固定費">固定費</option>
+                                <option value="変動費">変動費</option>
+                              </select>
+                            ) : (
+                              <input
+                                type={ci === 2 || ci >= 3 ? 'number' : 'text'}
+                                inputMode={ci === 2 || ci >= 3 ? 'numeric' : undefined}
+                                value={cell}
+                                onChange={(e) => updateCell(ri, ci, e.target.value)}
+                                style={{ width: '100%', border: err ? '1px solid red' : undefined }}
+                              />
+                            )}
+                            {err ? (
+                              <div style={{ color: 'red', fontSize: 12, marginTop: 4 }}>{err}</div>
+                            ) : null}
+                          </div>
+                        </td>
+                      );
+                    })}
                     <td style={{ padding: 6 }}>
                       <button type="button" onClick={() => removeRow(ri)} style={{ padding: '4px 8px' }}>
                         行を削除
