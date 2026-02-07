@@ -18,6 +18,7 @@ const Home: React.FC = () => {
   const [cellErrors, setCellErrors] = useState<string[][]>([]);
   const [status, setStatus] = useState<string>('');
   const [savedMonths, setSavedMonths] = useState<Array<{ year: number; month: number }>>([]);
+  const [isSaveDisabled, setIsSaveDisabled] = useState<boolean>(false);
 
   // parse matrix text into category objects (used for fallback or tests)
   const parseMatrixToObjects = (text: string) => {
@@ -143,6 +144,43 @@ const Home: React.FC = () => {
     setRows((prev) => prev.map((r) => r.slice(0, -1)));
     setCellErrors((prev) => prev.map((r) => r.slice(0, -1)));
   };
+
+  // Run full validation across all rows and top-level inputs and update cellErrors + save disabled state
+  const runImmediateValidation = () => {
+    // validate cells using validateCell
+    const newCellErrors: string[][] = rows.map((r) => r.map(() => ''));
+    for (let ri = 0; ri < rows.length; ri++) {
+      const cols = rows[ri];
+      for (let ci = 0; ci < Math.max(cols.length, 3 + adjLabels.length); ci++) {
+        const val = cols[ci] ?? '';
+        const err = validateCell(ci, val);
+        if (!newCellErrors[ri]) newCellErrors[ri] = Array(3 + adjLabels.length).fill('');
+        // ensure row length
+        if (newCellErrors[ri].length < 3 + adjLabels.length) {
+          newCellErrors[ri] = [...newCellErrors[ri], ...Array(3 + adjLabels.length - newCellErrors[ri].length).fill('')];
+        }
+        newCellErrors[ri][ci] = err;
+      }
+    }
+
+    // top-level validation: year and month
+    const y = Number(year);
+    const m = Number(month);
+    const yearMonthValid = !Number.isNaN(y) && y > 0 && !Number.isNaN(m) && m >= 1 && m <= 12;
+
+    setCellErrors(newCellErrors);
+
+    // disabled if any cell has error OR year/month invalid
+    const anyCellError = newCellErrors.some((r) => r.some((c) => c && c.length > 0));
+    setIsSaveDisabled(anyCellError || !yearMonthValid);
+    return !anyCellError && yearMonthValid;
+  };
+
+  useEffect(() => {
+    // run validation whenever form state changes
+    runImmediateValidation();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rows, adjLabels, year, month, income]);
 
   const updateAdjLabel = (index: number, value: string) => {
     setAdjLabels((prev) => prev.map((v, i) => (i === index ? value : v)));
@@ -452,7 +490,7 @@ const Home: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="submit" style={{ padding: '8px 16px' }}>保存</button>
+          <button type="submit" disabled={isSaveDisabled} style={{ padding: '8px 16px' }}>保存</button>
         </div>
       </form>
 
