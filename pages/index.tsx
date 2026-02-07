@@ -3,6 +3,9 @@ import React, { useState, useEffect } from 'react';
 const Home: React.FC = () => {
   const [income, setIncome] = useState<string>('');
   const [savings, setSavings] = useState<string>('');
+  const now = new Date();
+  const [year, setYear] = useState<string>(String(now.getFullYear()));
+  const [month, setMonth] = useState<string>(String(now.getMonth() + 1));
   const [categoriesMatrix, setCategoriesMatrix] = useState<string>(
     `,,,,ディズニー旅行,飲み会
 固定費,家賃,20000,,
@@ -192,6 +195,8 @@ const Home: React.FC = () => {
         return {
           income: Number(income || 0),
           savingsGoal: Number(savings || 0),
+          year: Number(year || 0),
+          month: Number(month || 0),
           categories: cats
         };
       };
@@ -209,6 +214,59 @@ const Home: React.FC = () => {
         const text = await res.text();
         setStatus(`Error: ${text}`);
       }
+    } catch (err) {
+      setStatus(`Error: ${String(err)}`);
+    }
+  };
+
+  const loadMonth = async () => {
+    setStatus('Loading...');
+    try {
+      const y = Number(year);
+      const m = Number(month);
+      if (!y || !m) {
+        setStatus('年と月を指定してください');
+        return;
+      }
+      const res = await fetch(`/api/budgets?year=${y}&month=${m}`);
+      if (res.status === 404) {
+        setStatus('指定の月のデータは見つかりませんでした（新規作成してください）');
+        // clear form? keep as-is
+        return;
+      }
+      if (!res.ok) {
+        const text = await res.text();
+        setStatus(`Error: ${text}`);
+        return;
+      }
+      const data = await res.json();
+      // populate form from returned record
+      setIncome(String(data.income ?? ''));
+      setSavings(String(data.savingsGoal ?? ''));
+      // rebuild adjLabels from categories' adjustments (first-seen order)
+      const labels: string[] = [];
+      (data.categories || []).forEach((c: any) => {
+        (c.adjustments || []).forEach((a: any) => {
+          if (!labels.includes(a.label)) labels.push(a.label);
+        });
+      });
+      setAdjLabels(labels);
+      // build rows
+      const builtRows: string[][] = (data.categories || []).map((c: any) => {
+        const row: string[] = [];
+        row[0] = c.type || '';
+        row[1] = c.name || '';
+        row[2] = c.base !== undefined ? String(c.base) : '';
+        for (let i = 0; i < labels.length; i++) {
+          const lab = labels[i];
+          const found = (c.adjustments || []).find((a: any) => a.label === lab);
+          row[3 + i] = found ? String(found.amount) : '';
+        }
+        return row;
+      });
+      setRows(builtRows);
+      setCellErrors(builtRows.map((r) => r.map(() => '')));
+      setStatus('Loaded');
     } catch (err) {
       setStatus(`Error: ${String(err)}`);
     }
@@ -238,6 +296,23 @@ const Home: React.FC = () => {
             inputMode="numeric"
             style={{ width: '100%', padding: 8 }}
           />
+        </div>
+
+        <div style={{ marginBottom: 12, display: 'flex', gap: 8 }}>
+          <div style={{ flex: 1 }}>
+            <label>年</label>
+            <br />
+            <input value={year} onChange={(e) => setYear(e.target.value)} inputMode="numeric" style={{ width: '100%', padding: 8 }} />
+          </div>
+          <div style={{ width: 140 }}>
+            <label>月</label>
+            <br />
+            <select value={month} onChange={(e) => setMonth(e.target.value)} style={{ width: '100%', padding: 8 }}>
+              {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
+                <option key={m} value={String(m)}>{m} 月</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div style={{ marginBottom: 12 }}>
@@ -323,7 +398,10 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        <button type="submit" style={{ padding: '8px 16px' }}>保存</button>
+        <div style={{ display: 'flex', gap: 8 }}>
+          <button type="button" onClick={loadMonth} style={{ padding: '8px 16px' }}>Load month</button>
+          <button type="submit" style={{ padding: '8px 16px' }}>保存</button>
+        </div>
       </form>
 
       <div style={{ marginTop: 16 }}>{status}</div>
