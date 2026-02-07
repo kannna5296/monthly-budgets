@@ -413,6 +413,7 @@ const Home: React.FC = () => {
                 <tr>
                   <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>種別</th>
                   <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>カテゴリ名</th>
+                  <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>合計</th>
                   <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>ベース予算</th>
                   {adjLabels.map((label, i) => (
                     <th key={i} style={{ borderBottom: '1px solid #ccc', padding: 6 }}>
@@ -431,6 +432,58 @@ const Home: React.FC = () => {
                   <tr key={ri}>
                     {row.map((cell, ci) => {
                       const err = (cellErrors[ri] && cellErrors[ri][ci]) || '';
+                      // render the category name (ci === 1) and inject the total cell immediately after it
+                      if (ci === 1) {
+                        return (
+                          <React.Fragment key={`cell-${ri}-${ci}`}>
+                            <td style={{ padding: 6, borderBottom: '1px solid #eee', verticalAlign: 'top' }}>
+                              <div>
+                                <input
+                                  type="text"
+                                  value={cell}
+                                  onChange={(e) => updateCell(ri, ci, e.target.value)}
+                                  style={{ width: '100%', border: err ? '1px solid red' : undefined }}
+                                />
+                                {err ? (
+                                  <div style={{ color: 'red', fontSize: 12, marginTop: 4 }}>{err}</div>
+                                ) : null}
+                              </div>
+                            </td>
+                            <td style={{ padding: 6, borderBottom: '1px solid #eee', verticalAlign: 'top', textAlign: 'right' }} aria-label={(() => {
+                              const baseRaw = row[2];
+                              if (baseRaw === undefined || baseRaw === '') return '';
+                              const baseNum = Number(baseRaw);
+                              if (Number.isNaN(baseNum)) return '';
+                              let total = baseNum;
+                              for (let i = 0; i < adjLabels.length; i++) {
+                                const raw = row[3 + i];
+                                if (raw !== undefined && raw !== '') {
+                                  const n = Number(raw);
+                                  if (!Number.isNaN(n)) total += n;
+                                }
+                              }
+                              return `${total.toLocaleString()} 円`;
+                            })()}>
+                              {(() => {
+                                const baseRaw = row[2];
+                                if (baseRaw === undefined || baseRaw === '') return '';
+                                const baseNum = Number(baseRaw);
+                                if (Number.isNaN(baseNum)) return '';
+                                let total = baseNum;
+                                for (let i = 0; i < adjLabels.length; i++) {
+                                  const raw = row[3 + i];
+                                  if (raw !== undefined && raw !== '') {
+                                    const n = Number(raw);
+                                    if (!Number.isNaN(n)) total += n;
+                                  }
+                                }
+                                return total.toLocaleString() + ' 円';
+                              })()}
+                            </td>
+                          </React.Fragment>
+                        );
+                      }
+                      // for other cells render normally
                       return (
                         <td key={ci} style={{ padding: 6, borderBottom: '1px solid #eee', verticalAlign: 'top' }}>
                           <div>
@@ -459,6 +512,7 @@ const Home: React.FC = () => {
                         </td>
                       );
                     })}
+
                     <td style={{ padding: 6 }}>
                       <button type="button" onClick={() => removeRow(ri)} style={{ padding: '4px 8px' }}>
                         行を削除
