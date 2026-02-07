@@ -17,6 +17,7 @@ const Home: React.FC = () => {
   const [rows, setRows] = useState<string[][]>([]);
   const [cellErrors, setCellErrors] = useState<string[][]>([]);
   const [status, setStatus] = useState<string>('');
+  const [savedMonths, setSavedMonths] = useState<Array<{ year: number; month: number }>>([]);
 
   // parse matrix text into category objects (used for fallback or tests)
   const parseMatrixToObjects = (text: string) => {
@@ -72,7 +73,12 @@ const Home: React.FC = () => {
     setAdjLabels(parsed.labels);
     setRows(parsed.rows);
     setCellErrors(parsed.rows.map((r) => r.map(() => '')));
-  }, []);
+    // fetch saved months on mount (and whenever categoriesMatrix changes)
+    // call via setTimeout to ensure the fetchSavedMonths function is defined (avoids early reference error)
+    setTimeout(() => {
+      void fetchSavedMonths();
+    }, 0);
+  }, [categoriesMatrix]);
   // helpers for editing the table
   const validateCell = (colIndex: number, value: string) => {
     // col 0: type, col1: name, col2: base (required), col>=3: adjustments (optional but numeric)
@@ -140,6 +146,26 @@ const Home: React.FC = () => {
 
   const updateAdjLabel = (index: number, value: string) => {
     setAdjLabels((prev) => prev.map((v, i) => (i === index ? value : v)));
+  };
+
+  const fetchSavedMonths = async () => {
+    try {
+      const res = await fetch('/api/budgets');
+      if (!res.ok) return;
+      const all = await res.json();
+      const map = new Map<string, { year: number; month: number }>();
+      (all || []).forEach((r: any) => {
+        const y = Number(r.year);
+        const m = Number(r.month);
+        if (!Number.isNaN(y) && !Number.isNaN(m)) {
+          map.set(`${y}-${m}`, { year: y, month: m });
+        }
+      });
+      const list = Array.from(map.values()).sort((a, b) => (a.year - b.year) || (a.month - b.month));
+      setSavedMonths(list);
+    } catch (err) {
+      // ignore
+    }
   };
 
   // submit handler: build payload from current table state
@@ -210,6 +236,8 @@ const Home: React.FC = () => {
       });
       if (res.ok) {
         setStatus('Saved successfully');
+        // refresh saved months list so the UI shows newly created months
+        await fetchSavedMonths();
       } else {
         const text = await res.text();
         setStatus(`Error: ${text}`);
@@ -219,11 +247,11 @@ const Home: React.FC = () => {
     }
   };
 
-  const loadMonth = async () => {
+  const loadMonth = async (yArg?: number, mArg?: number) => {
     setStatus('Loading...');
     try {
-      const y = Number(year);
-      const m = Number(month);
+      const y = yArg ?? Number(year);
+      const m = mArg ?? Number(month);
       if (!y || !m) {
         setStatus('年と月を指定してください');
         return;
@@ -266,6 +294,8 @@ const Home: React.FC = () => {
       });
       setRows(builtRows);
       setCellErrors(builtRows.map((r) => r.map(() => '')));
+      setYear(String(y));
+      setMonth(String(m));
       setStatus('Loaded');
     } catch (err) {
       setStatus(`Error: ${String(err)}`);
@@ -298,7 +328,7 @@ const Home: React.FC = () => {
           />
         </div>
 
-        <div style={{ marginBottom: 12, display: 'flex', gap: 8 }}>
+        <div style={{ marginBottom: 12, display: 'flex', gap: 8, alignItems: 'flex-start' }}>
           <div style={{ flex: 1 }}>
             <label>年</label>
             <br />
@@ -312,6 +342,29 @@ const Home: React.FC = () => {
                 <option key={m} value={String(m)}>{m} 月</option>
               ))}
             </select>
+          </div>
+          <div style={{ flex: 2 }}>
+            <label>保存済みの年月</label>
+            <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 4 }}>
+              {savedMonths.length === 0 ? (
+                <div style={{ color: '#666' }}>保存済みのデータはありません</div>
+              ) : (
+                savedMonths.map((s) => (
+                  <button
+                    key={`${s.year}-${s.month}`}
+                    type="button"
+                    onClick={() => {
+                      setYear(String(s.year));
+                      setMonth(String(s.month));
+                      loadMonth(s.year, s.month);
+                    }}
+                    style={{ padding: '6px 10px' }}
+                  >
+                    {s.year}年{s.month}月
+                  </button>
+                ))
+              )}
+            </div>
           </div>
         </div>
 
@@ -399,7 +452,6 @@ const Home: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="button" onClick={loadMonth} style={{ padding: '8px 16px' }}>Load month</button>
           <button type="submit" style={{ padding: '8px 16px' }}>保存</button>
         </div>
       </form>
