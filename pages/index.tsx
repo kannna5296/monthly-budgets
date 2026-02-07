@@ -406,6 +406,49 @@ const Home: React.FC = () => {
           </div>
         </div>
 
+        {/* Usable money and remaining balance */}
+        <div style={{ marginBottom: 12, padding: 12, border: '1px solid #eee', borderRadius: 6, maxWidth: 700 }}>
+          {(() => {
+            const incomeNum = Number(income || 0);
+            const savingsNum = Number(savings || 0);
+            const usable = (Number.isNaN(incomeNum) ? 0 : incomeNum) - (Number.isNaN(savingsNum) ? 0 : savingsNum);
+            // sum assigned: iterate rows, sum base + numeric adjustments
+            let assigned = 0;
+            for (let ri = 0; ri < rows.length; ri++) {
+              const cols = rows[ri];
+              const baseRaw = cols[2];
+              const baseNum = Number(baseRaw);
+              if (!Number.isNaN(baseNum)) assigned += baseNum;
+              for (let ci = 0; ci < adjLabels.length; ci++) {
+                const raw = cols[3 + ci];
+                const n = Number(raw);
+                if (!Number.isNaN(n)) assigned += n;
+              }
+            }
+            const remaining = usable - assigned;
+            const format = (n: number) => n.toLocaleString() + ' 円';
+            return (
+              <div style={{ display: 'flex', gap: 16, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div>
+                  <div style={{ fontSize: 12, color: '#666' }}>使えるお金</div>
+                  <div style={{ fontWeight: '600' }}>{format(usable)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: '#666' }}>割当合計</div>
+                  <div style={{ fontWeight: '600' }}>{format(assigned)}</div>
+                </div>
+                <div>
+                  <div style={{ fontSize: 12, color: '#666' }}>残額</div>
+                  <div style={{ fontWeight: '700', color: remaining < 0 ? 'red' : '#000' }}>{format(remaining)}</div>
+                </div>
+                {remaining < 0 ? (
+                  <div style={{ color: 'red', fontWeight: 600 }}>⚠ 残額がマイナスです。配分を見直してください。</div>
+                ) : null}
+              </div>
+            );
+          })()}
+        </div>
+
         <div style={{ marginBottom: 12 }}>
           <div style={{ overflowX: 'auto', marginTop: 8 }}>
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
