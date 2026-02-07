@@ -1,12 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import fs from 'fs';
-import path from 'path';
 import { z } from 'zod';
+import type { MonthlyBudgetPayload } from '../../types/budget';
+import { readBudgets, findByYearMonth, upsertBudget } from '../../lib/storage';
 
-const dataDir = path.join(process.cwd(), 'data');
-const filePath = path.join(dataDir, 'budgets.json');
-
-export default function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   // Zod schemas for server-side validation
   const numberFromString = z.preprocess((val) => {
     if (typeof val === 'string') {
@@ -46,39 +43,13 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
     }
     const payload = parsed.data;
     try {
-      if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir);
-      let arr: any[] = [];
-      if (fs.existsSync(filePath)) {
-        const raw = fs.readFileSync(filePath, 'utf8');
-        arr = raw ? JSON.parse(raw) : [];
+      // determine whether this is create or update so we can pick 201 vs 200
+      const existing = await findByYearMonth(Number(payload.year), Number(payload.month));
+      const record = await upsertBudget(payload as MonthlyBudgetPayload);
+      if (existing) {
+        return res.status(200).json(record);
       }
-
-      // Upsert by year + month: if a record for same year/month exists, update it; otherwise insert
-      const existingIndex = arr.findIndex((r: any) => r && Number(r.year) === Number(payload.year) && Number(r.month) === Number(payload.month));
-      if (existingIndex >= 0) {
-        const existing = arr[existingIndex];
-        const updated = {
-          ...existing,
-          // preserve id and createdAt
-          id: existing.id || Date.now(),
-          createdAt: existing.createdAt || new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-          // replace contents
-          income: payload.income,
-          savingsGoal: payload.savingsGoal,
-          year: payload.year,
-          month: payload.month,
-          categories: payload.categories
-        };
-        arr[existingIndex] = updated;
-        fs.writeFileSync(filePath, JSON.stringify(arr, null, 2), 'utf8');
-        return res.status(200).json(updated);
-      } else {
-        const record = { id: Date.now(), createdAt: new Date().toISOString(), ...payload };
-        arr.push(record);
-        fs.writeFileSync(filePath, JSON.stringify(arr, null, 2), 'utf8');
-        return res.status(201).json(record);
-      }
+      return res.status(201).json(record);
     } catch (err) {
       return res.status(500).json({ error: String(err) });
     }
@@ -86,18 +57,16 @@ export default function handler(req: NextApiRequest, res: NextApiResponse) {
 
   if (req.method === 'GET') {
     try {
-      if (!fs.existsSync(filePath)) return res.status(200).json([]);
-      const raw = fs.readFileSync(filePath, 'utf8');
-      const arr = raw ? JSON.parse(raw) : [];
       const q = req.query;
       if (q && q.year && q.month) {
         const y = Number(q.year);
         const m = Number(q.month);
-        const found = arr.find((r: any) => Number(r.year) === y && Number(r.month) === m);
+        const found = await findByYearMonth(y, m);
         if (!found) return res.status(404).json({ error: 'not_found' });
         return res.status(200).json(found);
       }
-      return res.status(200).json(arr);
+      const all = await readBudgets();
+      return res.status(200).json(all);
     } catch (err) {
       return res.status(500).json({ error: String(err) });
     }
