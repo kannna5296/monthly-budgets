@@ -79,7 +79,7 @@ const Home: React.FC = () => {
   };
 
   const addRow = () => {
-    setRows((prev) => [...prev, Array(3 + adjLabels.length).fill('')]);
+    setRows((prev) => [...prev, [/* type */ '固定費', /* name */ '', /* base */ '', ...Array(adjLabels.length).fill('')]]);
   };
 
   const removeRow = (index: number) => {
@@ -105,6 +105,36 @@ const Home: React.FC = () => {
     e.preventDefault();
     setStatus('Saving...');
     try {
+      // validate rows: type must be '固定費' or '変動費'; base and adjustments must be numbers (or empty)
+      for (let ri = 0; ri < rows.length; ri++) {
+        const cols = rows[ri];
+        const type = cols[0];
+        if (!(type === '固定費' || type === '変動費')) {
+          setStatus(`行 ${ri + 1}: 種別は「固定費」か「変動費」のいずれかを選択してください`);
+          return;
+        }
+        const baseRaw = cols[2];
+        if (baseRaw === undefined || baseRaw === '') {
+          setStatus(`行 ${ri + 1}: ベース予算を数値で指定してください`);
+          return;
+        }
+        const base = Number(baseRaw);
+        if (Number.isNaN(base)) {
+          setStatus(`行 ${ri + 1}: ベース予算は数値である必要があります`);
+          return;
+        }
+        for (let ci = 0; ci < adjLabels.length; ci++) {
+          const raw = cols[3 + ci];
+          if (raw !== undefined && raw !== '') {
+            const v = Number(raw);
+            if (Number.isNaN(v)) {
+              setStatus(`行 ${ri + 1} 補正列「${adjLabels[ci]}」は数値で指定してください`);
+              return;
+            }
+          }
+        }
+      }
+
       const buildPayloadFromState = () => {
         const cats = rows.map((cols) => {
           const type = cols[0] || '';
@@ -197,11 +227,24 @@ const Home: React.FC = () => {
                   <tr key={ri}>
                     {row.map((cell, ci) => (
                       <td key={ci} style={{ padding: 6, borderBottom: '1px solid #eee' }}>
-                        <input
-                          value={cell}
-                          onChange={(e) => updateCell(ri, ci, e.target.value)}
-                          style={{ width: '100%' }}
-                        />
+                        {ci === 0 ? (
+                          <select
+                            value={cell}
+                            onChange={(e) => updateCell(ri, ci, e.target.value)}
+                            style={{ width: '100%' }}
+                          >
+                            <option value="固定費">固定費</option>
+                            <option value="変動費">変動費</option>
+                          </select>
+                        ) : (
+                          <input
+                            type={ci === 2 || ci >= 3 ? 'number' : 'text'}
+                            inputMode={ci === 2 || ci >= 3 ? 'numeric' : undefined}
+                            value={cell}
+                            onChange={(e) => updateCell(ri, ci, e.target.value)}
+                            style={{ width: '100%' }}
+                          />
+                        )}
                       </td>
                     ))}
                     <td style={{ padding: 6 }}>
