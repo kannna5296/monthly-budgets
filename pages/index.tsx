@@ -179,7 +179,7 @@ const Home: React.FC = () => {
                 <tr>
                   <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>種別</th>
                   <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>カテゴリ名</th>
-                  <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>ベース</th>
+                  <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>ベース予算</th>
                   {adjLabels.map((label, i) => (
                     <th key={i} style={{ borderBottom: '1px solid #ccc', padding: 6 }}>
                       <input
