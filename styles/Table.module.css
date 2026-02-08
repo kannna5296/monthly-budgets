@@ -81,6 +81,54 @@
   width: 120px;
 }
 
+/* Sticky columns: keep the first 4 columns fixed while the rest scroll horizontally */
+.colType,
+.colName,
+.colTotal,
+.colBase {
+  position: sticky;
+  z-index: 2;
+  /* base stacking for sticky cells */
+  background: white;
+  /* ensure sticky cells cover scrolled content behind */
+}
+
+/* exact left offsets must match the summed widths of preceding sticky columns */
+.colType {
+  left: 0;
+}
+
+.colName {
+  left: 120px;
+}
+
+.colTotal {
+  left: 230px;
+  /* 120 + 110 */
+}
+
+.colBase {
+  left: 370px;
+  /* 120 + 110 + 140 */
+}
+
+/* header cells should sit above data cells */
+.th.colType,
+.th.colName,
+.th.colTotal,
+.th.colBase {
+  top: 0;
+  z-index: 4;
+}
+
+/* small right border on sticky columns to separate from scrolling area */
+.colName,
+.colTotal,
+.colBase {
+  box-shadow: 1px 0 0 #eee;
+  /* subtle divider on the right edge */
+}
+
 .colAction {
   width: 120px;
 }
