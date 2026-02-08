@@ -122,3 +122,32 @@
 .status {
   margin-top: 16px;
 }
+
+/* two-column layout for desktop: left main, right saved months */
+.twoCol {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.leftCol {
+  flex: 1 1 auto;
+}
+
+.rightCol {
+  width: 220px;
+  align-self: flex-start;
+  position: sticky;
+  top: 24px;
+}
+
+.savedList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.savedButtonFull {
+  width: 100%;
+  text-align: left;
+}
