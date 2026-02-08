@@ -438,13 +438,13 @@ const Home: React.FC = () => {
                   <div style={{ fontSize: 12, color: '#666' }}>割当合計</div>
                   <div style={{ fontWeight: '600' }}>{format(assigned)}</div>
                 </div>
-                <div>
+                <div role="status" aria-live="polite">
                   <div style={{ fontSize: 12, color: '#666' }}>残額</div>
                   <div style={{ fontWeight: '700', color: remaining < 0 ? 'red' : '#000' }}>{format(remaining)}</div>
+                  {remaining < 0 ? (
+                    <div style={{ color: 'red', fontWeight: 600 }}>⚠ 残額がマイナスです。配分を見直してください。</div>
+                  ) : null}
                 </div>
-                {remaining < 0 ? (
-                  <div style={{ color: 'red', fontWeight: 600 }}>⚠ 残額がマイナスです。配分を見直してください。</div>
-                ) : null}
               </div>
             );
           })()}
@@ -452,23 +452,24 @@ const Home: React.FC = () => {
 
         <div style={{ marginBottom: 12 }}>
           <div className={styles.tableContainer}>
-            <table className={styles.table}>
+            <table className={styles.table} aria-label="予算編集テーブル">
               <thead>
                 <tr>
-                  <th className={styles.th}>種別</th>
-                  <th className={styles.th}>カテゴリ名</th>
-                  <th className={styles.th}>合計</th>
-                  <th className={styles.th}>ベース予算</th>
+                  <th className={`${styles.th} ${styles.colType}`}>種別</th>
+                  <th className={`${styles.th} ${styles.colName}`}>カテゴリ名</th>
+                  <th className={`${styles.th} ${styles.colTotal}`}>合計</th>
+                  <th className={`${styles.th} ${styles.colBase}`}>ベース予算</th>
                   {adjLabels.map((label, i) => (
-                    <th key={i} className={styles.th}>
+                    <th key={i} className={`${styles.th} ${styles.colAdj}`}>
                       <input
                         value={label}
                         onChange={(e) => updateAdjLabel(i, e.target.value)}
                         className={styles.input}
+                        aria-label={`補正列 ${i + 1} のラベル`}
                       />
                     </th>
                   ))}
-                  <th className={styles.th}>操作</th>
+                  <th className={`${styles.th} ${styles.colAction}`}>操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -480,20 +481,21 @@ const Home: React.FC = () => {
                       if (ci === 1) {
                         return (
                           <React.Fragment key={`cell-${ri}-${ci}`}>
-                            <td className={styles.td}>
+                            <td className={`${styles.td} ${styles.colName}`}>
                               <div>
                                 <input
                                   type="text"
                                   value={cell}
                                   onChange={(e) => updateCell(ri, ci, e.target.value)}
                                   className={err ? `${styles.input} ${styles.inputError}` : styles.input}
+                                  aria-label={`カテゴリ名 行 ${ri + 1}`}
                                 />
                                 {err ? (
                                   <div className={styles.dangerText} style={{ fontSize: 12, marginTop: 4 }}>{err}</div>
                                 ) : null}
                               </div>
                             </td>
-                            <td className={`${styles.td} ${styles.totalCell}`} aria-label={(() => {
+                            <td className={`${styles.td} ${styles.totalCell} ${styles.colTotal}`} aria-label={(() => {
                               const baseRaw = row[2];
                               if (baseRaw === undefined || baseRaw === '') return '';
                               const baseNum = Number(baseRaw);
@@ -528,8 +530,9 @@ const Home: React.FC = () => {
                         );
                       }
                       // for other cells render normally
+                      const tdClass = ci === 0 ? `${styles.td} ${styles.colType}` : ci === 2 ? `${styles.td} ${styles.colBase}` : `${styles.td} ${styles.colAdj}`;
                       return (
-                        <td key={ci} className={styles.td}>
+                        <td key={ci} className={tdClass}>
                           <div>
                             {ci === 0 ? (
                               <select
@@ -547,6 +550,7 @@ const Home: React.FC = () => {
                                 value={cell}
                                 onChange={(e) => updateCell(ri, ci, e.target.value)}
                                 className={err ? `${styles.input} ${styles.inputError}` : styles.input}
+                                aria-label={ci === 2 ? `ベース予算 行 ${ri + 1}` : `補正 ${ci - 2} 行 ${ri + 1}`}
                               />
                             )}
                             {err ? (

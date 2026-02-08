@@ -49,6 +49,45 @@
   font-weight: 700;
 }
 
+/* Column-specific widths for desktop-first layout */
+.colType {
+  width: 120px;
+}
+
+.colName {
+  width: 320px;
+}
+
+.colTotal {
+  width: 140px;
+  background: #f6fbff;
+  border-left: 1px solid var(--border);
+}
+
+.colBase {
+  width: 140px;
+}
+
+.colAdj {
+  width: 120px;
+}
+
+.colAction {
+  width: 120px;
+}
+
+/* focus styles for keyboard users */
+.input:focus-visible,
+.smallButton:focus-visible,
+.primaryButton:focus-visible {
+  outline: 3px solid rgba(11, 105, 255, 0.18);
+  outline-offset: 2px;
+}
+
+.th input:focus-visible {
+  outline: 2px solid rgba(11, 105, 255, 0.18);
+}
+
 .actionCell {
   padding: 8px;
 }
