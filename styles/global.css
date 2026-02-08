@@ -1,0 +1,41 @@
+/* Global styles for the app */
+:root {
+  --bg: #ffffff;
+  --muted: #666666;
+  --border: #e6e6e6;
+  --accent: #0b69ff;
+  --danger: #e14545;
+  --radius: 6px;
+}
+
+* {
+  box-sizing: border-box
+}
+
+html,
+body,
+#__next {
+  height: 100%
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+  background: var(--bg);
+  color: #111;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  cursor: pointer
+}
+
+/* basic utility */
+.visually-hidden {
+  position: absolute !important;
+  height: 1px;
+  width: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+  white-space: nowrap
+}

@@ -1,0 +1,85 @@
+.main {
+  padding: 24px;
+}
+
+.form {
+  max-width: 980px;
+}
+
+.input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+}
+
+.inputError {
+  border-color: var(--danger);
+}
+
+.tableContainer {
+  overflow-x: auto;
+  margin-top: 8px;
+  border: 1px solid transparent;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+  /* keep columns readable on desktop */
+}
+
+.th {
+  border-bottom: 1px solid #ccc;
+  padding: 8px;
+  text-align: left;
+  background: #fafafa;
+  font-weight: 600;
+}
+
+.td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top;
+}
+
+.totalCell {
+  text-align: right;
+  font-weight: 700;
+}
+
+.actionCell {
+  padding: 8px;
+}
+
+.smallButton {
+  padding: 6px 12px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: white;
+}
+
+.primaryButton {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background: var(--accent);
+  color: white;
+}
+
+.dangerText {
+  color: var(--danger);
+  font-weight: 600;
+}
+
+.metaRow {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.status {
+  margin-top: 16px;
+}

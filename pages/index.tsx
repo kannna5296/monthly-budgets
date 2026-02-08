@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import styles from '../styles/Table.module.css';
 
 const Home: React.FC = () => {
   const [income, setIncome] = useState<string>('');
@@ -341,9 +342,9 @@ const Home: React.FC = () => {
   };
 
   return (
-    <main style={{ padding: 24, fontFamily: 'system-ui, sans-serif' }}>
+    <main className={styles.main}>
       <h1>今月の予算</h1>
-      <form onSubmit={onSubmit} style={{ maxWidth: 700 }}>
+      <form onSubmit={onSubmit} className={styles.form}>
         <div style={{ marginBottom: 12 }}>
           <label>収入（円）</label>
           <br />
@@ -351,7 +352,7 @@ const Home: React.FC = () => {
             value={income}
             onChange={(e) => setIncome(e.target.value)}
             inputMode="numeric"
-            style={{ width: '100%', padding: 8 }}
+            className={styles.input}
           />
         </div>
 
@@ -362,7 +363,7 @@ const Home: React.FC = () => {
             value={savings}
             onChange={(e) => setSavings(e.target.value)}
             inputMode="numeric"
-            style={{ width: '100%', padding: 8 }}
+            className={styles.input}
           />
         </div>
 
@@ -370,12 +371,12 @@ const Home: React.FC = () => {
           <div style={{ flex: 1 }}>
             <label>年</label>
             <br />
-            <input value={year} onChange={(e) => setYear(e.target.value)} inputMode="numeric" style={{ width: '100%', padding: 8 }} />
+            <input value={year} onChange={(e) => setYear(e.target.value)} inputMode="numeric" className={styles.input} />
           </div>
           <div style={{ width: 140 }}>
             <label>月</label>
             <br />
-            <select value={month} onChange={(e) => setMonth(e.target.value)} style={{ width: '100%', padding: 8 }}>
+            <select value={month} onChange={(e) => setMonth(e.target.value)} className={styles.input}>
               {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
                 <option key={m} value={String(m)}>{m} 月</option>
               ))}
@@ -396,7 +397,7 @@ const Home: React.FC = () => {
                       setMonth(String(s.month));
                       loadMonth(s.year, s.month);
                     }}
-                    style={{ padding: '6px 10px' }}
+                    className={styles.smallButton}
                   >
                     {s.year}年{s.month}月
                   </button>
@@ -450,24 +451,24 @@ const Home: React.FC = () => {
         </div>
 
         <div style={{ marginBottom: 12 }}>
-          <div style={{ overflowX: 'auto', marginTop: 8 }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <div className={styles.tableContainer}>
+            <table className={styles.table}>
               <thead>
                 <tr>
-                  <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>種別</th>
-                  <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>カテゴリ名</th>
-                  <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>合計</th>
-                  <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>ベース予算</th>
+                  <th className={styles.th}>種別</th>
+                  <th className={styles.th}>カテゴリ名</th>
+                  <th className={styles.th}>合計</th>
+                  <th className={styles.th}>ベース予算</th>
                   {adjLabels.map((label, i) => (
-                    <th key={i} style={{ borderBottom: '1px solid #ccc', padding: 6 }}>
+                    <th key={i} className={styles.th}>
                       <input
                         value={label}
                         onChange={(e) => updateAdjLabel(i, e.target.value)}
-                        style={{ width: '100%' }}
+                        className={styles.input}
                       />
                     </th>
                   ))}
-                  <th style={{ borderBottom: '1px solid #ccc', padding: 6 }}>操作</th>
+                  <th className={styles.th}>操作</th>
                 </tr>
               </thead>
               <tbody>
@@ -479,20 +480,20 @@ const Home: React.FC = () => {
                       if (ci === 1) {
                         return (
                           <React.Fragment key={`cell-${ri}-${ci}`}>
-                            <td style={{ padding: 6, borderBottom: '1px solid #eee', verticalAlign: 'top' }}>
+                            <td className={styles.td}>
                               <div>
                                 <input
                                   type="text"
                                   value={cell}
                                   onChange={(e) => updateCell(ri, ci, e.target.value)}
-                                  style={{ width: '100%', border: err ? '1px solid red' : undefined }}
+                                  className={err ? `${styles.input} ${styles.inputError}` : styles.input}
                                 />
                                 {err ? (
-                                  <div style={{ color: 'red', fontSize: 12, marginTop: 4 }}>{err}</div>
+                                  <div className={styles.dangerText} style={{ fontSize: 12, marginTop: 4 }}>{err}</div>
                                 ) : null}
                               </div>
                             </td>
-                            <td style={{ padding: 6, borderBottom: '1px solid #eee', verticalAlign: 'top', textAlign: 'right' }} aria-label={(() => {
+                            <td className={`${styles.td} ${styles.totalCell}`} aria-label={(() => {
                               const baseRaw = row[2];
                               if (baseRaw === undefined || baseRaw === '') return '';
                               const baseNum = Number(baseRaw);
@@ -528,13 +529,13 @@ const Home: React.FC = () => {
                       }
                       // for other cells render normally
                       return (
-                        <td key={ci} style={{ padding: 6, borderBottom: '1px solid #eee', verticalAlign: 'top' }}>
+                        <td key={ci} className={styles.td}>
                           <div>
                             {ci === 0 ? (
                               <select
                                 value={cell}
                                 onChange={(e) => updateCell(ri, ci, e.target.value)}
-                                style={{ width: '100%', border: err ? '1px solid red' : undefined }}
+                                className={err ? `${styles.input} ${styles.inputError}` : styles.input}
                               >
                                 <option value="固定費">固定費</option>
                                 <option value="変動費">変動費</option>
@@ -545,19 +546,19 @@ const Home: React.FC = () => {
                                 inputMode={ci === 2 || ci >= 3 ? 'numeric' : undefined}
                                 value={cell}
                                 onChange={(e) => updateCell(ri, ci, e.target.value)}
-                                style={{ width: '100%', border: err ? '1px solid red' : undefined }}
+                                className={err ? `${styles.input} ${styles.inputError}` : styles.input}
                               />
                             )}
                             {err ? (
-                              <div style={{ color: 'red', fontSize: 12, marginTop: 4 }}>{err}</div>
+                              <div className={styles.dangerText} style={{ fontSize: 12, marginTop: 4 }}>{err}</div>
                             ) : null}
                           </div>
                         </td>
                       );
                     })}
 
-                    <td style={{ padding: 6 }}>
-                      <button type="button" onClick={() => removeRow(ri)} style={{ padding: '4px 8px' }}>
+                    <td className={styles.actionCell}>
+                      <button type="button" onClick={() => removeRow(ri)} className={styles.smallButton}>
                         行を削除
                       </button>
                     </td>
@@ -568,17 +569,17 @@ const Home: React.FC = () => {
           </div>
 
           <div style={{ marginTop: 8, display: 'flex', gap: 8 }}>
-            <button type="button" onClick={addRow} style={{ padding: '6px 12px' }}>
+            <button type="button" onClick={addRow} className={styles.smallButton}>
               行を追加
             </button>
-            <button type="button" onClick={addAdjColumn} style={{ padding: '6px 12px' }}>
+            <button type="button" onClick={addAdjColumn} className={styles.smallButton}>
               補正列を追加
             </button>
             <button
               type="button"
               onClick={removeAdjColumn}
               disabled={adjLabels.length === 0}
-              style={{ padding: '6px 12px' }}
+              className={styles.smallButton}
             >
               補正列を削除
             </button>
@@ -586,11 +587,11 @@ const Home: React.FC = () => {
         </div>
 
         <div style={{ display: 'flex', gap: 8 }}>
-          <button type="submit" disabled={isSaveDisabled} style={{ padding: '8px 16px' }}>保存</button>
+          <button type="submit" disabled={isSaveDisabled} className={styles.primaryButton}>保存</button>
         </div>
       </form>
 
-      <div style={{ marginTop: 16 }}>{status}</div>
+      <div className={styles.status}>{status}</div>
     </main>
   );
 };
