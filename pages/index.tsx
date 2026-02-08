@@ -319,13 +319,13 @@ export default function Home(): JSX.Element {
                 <table className={styles.table} aria-label="カテゴリテーブル">
                   <thead>
                     <tr>
-                      <th className={`${styles.th} ${styles.colType}`}>種別</th>
-                      <th className={`${styles.th} ${styles.colName}`}>カテゴリ名</th>
-                      <th className={`${styles.th} ${styles.colTotal}`}>合計</th>
-                      <th className={`${styles.th} ${styles.colBase}`}>ベース</th>
+                      <th className={`${styles.th} ${styles.colType}`}><div className={styles.thText} title="種別">種別</div></th>
+                      <th className={`${styles.th} ${styles.colName}`}><div className={styles.thText} title="カテゴリ名">カテゴリ名</div></th>
+                      <th className={`${styles.th} ${styles.colTotal}`}><div className={styles.thText} title="合計">合計</div></th>
+                      <th className={`${styles.th} ${styles.colBase}`}><div className={styles.thText} title="ベース">ベース</div></th>
                       {adjLabels.map((label, i) => (
-                        <th key={`h-adj-${i}`} className={`${styles.th} ${styles.colAdj}`}>
-                          <input value={label} onChange={(e) => updateAdjLabel(i, e.target.value)} className={styles.input} />
+                        <th key={`h-adj-${i}`} className={`${styles.th} ${styles.colAdj}`} title={label}>
+                          <input value={label} onChange={(e) => updateAdjLabel(i, e.target.value)} className={styles.input} title={label || `補正${i + 1}`} aria-label={`補正列 ${i + 1}`} />
                         </th>
                       ))}
                       <th className={`${styles.th} ${styles.colAction}`}>操作</th>

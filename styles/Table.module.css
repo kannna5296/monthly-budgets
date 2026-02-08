@@ -44,6 +44,19 @@
   text-align: left;
   background: #fafafa;
   font-weight: 600;
+  white-space: nowrap;
+  /* prevent header from wrapping */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  /* show ellipsis for long labels */
+}
+
+.thText {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .td {
