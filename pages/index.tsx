@@ -309,9 +309,9 @@ export default function Home(): JSX.Element {
 
             {/* 使えるお金 / カテゴリ予算の総和 / 残額 を年月の下にまとめて表示 */}
             <div style={{ marginBottom: 12, padding: 8, border: '1px solid #eee', borderRadius: 6, background: '#fafafa' }}>
-              <div style={{ marginBottom: 6 }}><strong>使えるお金:</strong> {(Number(income || 0) - Number(savings || 0)).toLocaleString()} 円</div>
-              <div style={{ marginBottom: 6 }}><strong>カテゴリ予算の総和:</strong> {rows.reduce((acc, r) => acc + numericRowTotal(r), 0).toLocaleString()} 円</div>
-              <div role="status" aria-live="polite"><strong>残額:</strong> {(() => { const usable = Number(income || 0) - Number(savings || 0); const assigned = rows.reduce((acc, r) => acc + numericRowTotal(r), 0); const rem = usable - assigned; return <span className={rem < 0 ? styles.dangerText : ''}>{rem.toLocaleString()} 円{rem < 0 ? ' — 割当が使えるお金を超えています' : ''}</span>; })()}</div>
+              <div style={{ marginBottom: 6 }}><strong>使えるお金(収入-貯金目標):</strong> {(Number(income || 0) - Number(savings || 0)).toLocaleString()} 円</div>
+              <div style={{ marginBottom: 6 }}><strong>予算の合計:</strong> {rows.reduce((acc, r) => acc + numericRowTotal(r), 0).toLocaleString()} 円</div>
+              <div role="status" aria-live="polite"><strong>未割当のお金:</strong> {(() => { const usable = Number(income || 0) - Number(savings || 0); const assigned = rows.reduce((acc, r) => acc + numericRowTotal(r), 0); const rem = usable - assigned; return <span className={rem < 0 ? styles.dangerText : ''}>{rem.toLocaleString()} 円{rem < 0 ? ' — 割当が使えるお金を超えています' : ''}</span>; })()}</div>
             </div>
 
             <div style={{ marginTop: 8 }}>
