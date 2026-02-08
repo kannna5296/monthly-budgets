@@ -23,12 +23,16 @@
 
 .tableContainer {
   overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  /* smoother scroll on mobile */
   margin-top: 8px;
   border: 1px solid transparent;
 }
 
 .table {
-  width: 100%;
+  /* allow the table to expand to its content width so the container can scroll */
+  width: max-content;
   border-collapse: collapse;
   min-width: 720px;
   /* keep columns readable on desktop */
