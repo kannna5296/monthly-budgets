@@ -168,14 +168,19 @@ export default function Home(): JSX.Element {
 
   useEffect(() => {
     (async () => {
+      // すでに策定済みの予算がある場合は、最新のものをロードする
       const list = await fetchSavedMonths();
-      // if there is no saved budget for the currently selected year/month, seed the UI from the initial matrix
-      const hasForCurrent = list && list.some((s) => s.year === Number(year) && s.month === Number(month));
-      if (!hasForCurrent) {
-        const parsed = parseMatrix(initialMatrix);
-        setAdjLabels(parsed.labels);
-        setRows(parsed.rows.length > 0 ? parsed.rows : [['固定費', '', '']]);
+      // if there are saved months, load the most recent one
+      if (list && list.length > 0) {
+        const latest = list[list.length - 1];
+        // loadMonth will populate top-level fields, adjLabels and rows
+        await loadMonth(latest.year, latest.month);
+        return;
       }
+      // 保存済みデータが無い場合のみ初期シードを表示する
+      const parsed = parseMatrix(initialMatrix);
+      setAdjLabels(parsed.labels);
+      setRows(parsed.rows.length > 0 ? parsed.rows : [['固定費', '', '']]);
     })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
