@@ -1,5 +1,9 @@
 .main {
   padding: 24px;
+  max-width: 1200px;
+  /* center the app content on wide screens */
+  margin: 0 auto;
+  /* horizontal centering with side margins */
 }
 
 .form {
@@ -126,7 +130,8 @@
 /* two-column layout for desktop: left main, right saved months */
 .twoCol {
   display: flex;
-  gap: 24px;
+  gap: 20px;
+  /* small gap between left and right columns */
   align-items: flex-start;
 }
 
