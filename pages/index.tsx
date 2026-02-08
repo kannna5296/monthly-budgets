@@ -10,6 +10,19 @@ export default function Home(): JSX.Element {
   const [savings, setSavings] = useState('');
   const [year, setYear] = useState(String(now.getFullYear()));
   const [month, setMonth] = useState(String(now.getMonth() + 1));
+  const pad2 = (n: number) => String(n).padStart(2, '0');
+  const [ymInput, setYmInput] = useState(`${year}-${pad2(Number(month))}`);
+  const [ymError, setYmError] = useState('');
+  const tryParseYm = (val: string): { year: number; month: number } | null => {
+    const v = val.trim();
+    const m = v.match(/^(\d{4})[-\/]?(\d{1,2})$/);
+    if (!m) return null;
+    const y = Number(m[1]);
+    const mon = Number(m[2]);
+    if (Number.isNaN(y) || Number.isNaN(mon)) return null;
+    if (y <= 0 || mon < 1 || mon > 12) return null;
+    return { year: y, month: mon };
+  };
   const [savedMonths, setSavedMonths] = useState<SavedMonth[]>([]);
   const [status, setStatus] = useState('');
   const [adjLabels, setAdjLabels] = useState<string[]>([]);
@@ -37,6 +50,7 @@ export default function Home(): JSX.Element {
   };
   const [cellErrors, setCellErrors] = useState<string[][]>([]);
   const [isSaveDisabled, setIsSaveDisabled] = useState(true);
+  const [incomeError, setIncomeError] = useState('');
 
   const addRow = () => setRows((r) => [...r, ['固定費', '', ...Array(adjLabels.length + 1).fill('')].slice(0, 3 + adjLabels.length)]);
   const removeRow = (idx: number) => setRows((r) => r.filter((_, i) => i !== idx));
@@ -50,6 +64,17 @@ export default function Home(): JSX.Element {
       if (!Number.isNaN(v)) total += v;
     }
     return total.toLocaleString() + ' 円';
+  };
+
+  // numeric total for a row (used in remaining calculation)
+  const numericRowTotal = (row: string[]) => {
+    const base = Number(row[2]);
+    let total = Number.isNaN(base) ? 0 : base;
+    for (let i = 0; i < adjLabels.length; i++) {
+      const v = Number(row[3 + i]);
+      if (!Number.isNaN(v)) total += v;
+    }
+    return total;
   };
 
   const validateCell = (ci: number, v: string) => {
@@ -81,10 +106,16 @@ export default function Home(): JSX.Element {
     const y = Number(year);
     const m = Number(month);
     const ymValid = !Number.isNaN(y) && y > 0 && !Number.isNaN(m) && m >= 1 && m <= 12;
+    setYmError(ymValid ? '' : '年と月は YYYY-MM の形式で有効な年月を入力してください');
+
+    // income validation: must be a number >= 1
+    const inc = Number(income);
+    const incomeValid = !Number.isNaN(inc) && inc >= 1;
+    setIncomeError(incomeValid ? '' : '収入は 1 以上で入力してください');
 
     const anyCellError = errs.some((r) => r.some(Boolean));
-    setIsSaveDisabled(anyCellError || !ymValid);
-    return !anyCellError && ymValid;
+    setIsSaveDisabled(anyCellError || !ymValid || !incomeValid);
+    return !anyCellError && ymValid && incomeValid;
   };
 
   useEffect(() => {
@@ -219,6 +250,7 @@ export default function Home(): JSX.Element {
       setSavings(String(d.savingsGoal ?? ''));
       setYear(String(d.year ?? y));
       setMonth(String(d.month ?? m));
+      setYmInput(`${d.year}-${pad2(d.month)}`);
 
       // reconstruct adjLabels as the ordered union of all adjustment labels
       const labelOrder: string[] = [];
@@ -255,30 +287,31 @@ export default function Home(): JSX.Element {
       <div className={styles.twoCol}>
         <section className={styles.leftCol}>
           <form className={styles.form} onSubmit={async (e) => { e.preventDefault(); await saveToServer(); }}>
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <div style={{ flex: 1 }}>
+            {/* 年月（単一セル） */}
+            <div style={{ marginBottom: 12 }}>
+              <label>年月 (YYYY-MM)</label>
+              <input value={ymInput} onChange={(e) => { setYmInput(e.target.value); const parsed = tryParseYm(e.target.value); if (parsed) { setYear(String(parsed.year)); setMonth(String(parsed.month)); setYmError(''); } else { setYmError('年と月は YYYY-MM の形式で有効な年月を入力してください'); } }} className={styles.input} />
+              {ymError ? <div className={styles.dangerText} style={{ marginTop: 6 }}>{ymError}</div> : null}
+            </div>
+
+            {/* 収入と貯金目標を縦に並べる */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginBottom: 12 }}>
+              <div>
                 <label>収入（円）</label>
                 <input value={income} onChange={(e) => setIncome(e.target.value)} className={styles.input} inputMode="numeric" />
+                {incomeError ? <div className={styles.dangerText} style={{ marginTop: 6 }}>{incomeError}</div> : null}
               </div>
-              <div style={{ width: 160 }}>
+              <div>
                 <label>貯金目標（円）</label>
                 <input value={savings} onChange={(e) => setSavings(e.target.value)} className={styles.input} inputMode="numeric" />
               </div>
             </div>
 
-            <div style={{ display: 'flex', gap: 12, marginBottom: 12 }}>
-              <div style={{ flex: 1 }}>
-                <label>年</label>
-                <input value={year} onChange={(e) => setYear(e.target.value)} className={styles.input} inputMode="numeric" />
-              </div>
-              <div style={{ width: 140 }}>
-                <label>月</label>
-                <select value={month} onChange={(e) => setMonth(e.target.value)} className={styles.input}>
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <option key={m} value={String(m)}>{m} 月</option>
-                  ))}
-                </select>
-              </div>
+            {/* 使えるお金 / カテゴリ予算の総和 / 残額 を年月の下にまとめて表示 */}
+            <div style={{ marginBottom: 12, padding: 8, border: '1px solid #eee', borderRadius: 6, background: '#fafafa' }}>
+              <div style={{ marginBottom: 6 }}><strong>使えるお金:</strong> {(Number(income || 0) - Number(savings || 0)).toLocaleString()} 円</div>
+              <div style={{ marginBottom: 6 }}><strong>カテゴリ予算の総和:</strong> {rows.reduce((acc, r) => acc + numericRowTotal(r), 0).toLocaleString()} 円</div>
+              <div role="status" aria-live="polite"><strong>残額:</strong> {(() => { const usable = Number(income || 0) - Number(savings || 0); const assigned = rows.reduce((acc, r) => acc + numericRowTotal(r), 0); const rem = usable - assigned; return <span className={rem < 0 ? styles.dangerText : ''}>{rem.toLocaleString()} 円{rem < 0 ? ' — 割当が使えるお金を超えています' : ''}</span>; })()}</div>
             </div>
 
             <div style={{ marginTop: 8 }}>
